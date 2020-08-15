@@ -5,7 +5,10 @@ export const files = writable({
     "home": {
       "outside": {},
       "upstairs": {
-        "bedroom": {}
+        "bedroom": {},
+        "downstairs": {
+          "@": ["", "home"]
+        }
       },
       "kitchen": {}
     },

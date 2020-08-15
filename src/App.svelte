@@ -12,6 +12,7 @@
 	
 	$: validCommands = commands.check(inputValue);
 	$: args = inputValue.split(" ").filter(item => !!item).slice(1);
+	$: printDirectory = currentPath.join("/") + "> "
 	
 	function checkInputKey(event) {
 		const { key } = event;
@@ -20,27 +21,17 @@
 			const command = validCommands[0];
 			
 			commandHistory = [...commandHistory, {
-				text: printDirectory() + inputValue,
+				text: printDirectory + inputValue,
 				commandName: inputValue,
 				output: command.print()
 			}];
 			
 			command.callback();
-			
-			commandHistory = [...commandHistory, {
-				text: printDirectory()
-			}]
-			
 			inputValue = "";
 		}
 	}
 	
-	function printDirectory() {
-		return currentPath.join("/") + "> ";
-	}
-	
 	onMount(() => {
-		commandHistory = [{ text: printDirectory() }]
 		$commands = [
 			{
 				name: "look",
@@ -90,13 +81,10 @@
 </style>
 
 <main>
-	<ul>
-		{#each commandHistory as command}
-			<li>
-				<CommandHistoryItem {...command} />
-			</li>
-		{/each}
-	</ul>
+	{#each commandHistory as command}
+		<CommandHistoryItem {...command} />
+	{/each}
 	
+	{printDirectory}
 	<InputCommand bind:value={inputValue} on:keydown={checkInputKey}/>
 </main>
