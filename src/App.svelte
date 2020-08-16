@@ -1,90 +1,62 @@
 <script>
-	import CommandHistoryItem from "./CommandHistoryItem.svelte";
-	import InputCommand from "./InputCommand.svelte";
-	import { files } from "./data/files";
-	import { commands } from "./data/commands";
-	import { onMount, afterUpdate, beforeUpdate } from "svelte";
-
-	// DEBUG
-	let commandHistory = [];
-	let currentPath = ["", "home"];
-	let inputValue = "";
+	// Components
+	import CommandLine from "./components/CommandLine.svelte";
+	import OldCommandLine from "./components/OldCommandLine.svelte";
+	import DirectoryManager from "./components/DirectoryManager.svelte";
+	import CommandManager from "./components/CommandManager.svelte";
 	
-	$: validCommands = commands.check(inputValue);
-	$: args = inputValue.split(" ").filter(item => !!item).slice(1);
-	$: printDirectory = currentPath.join("/") + "> "
+	// Data
+	import { root } from "./data/root";
+	import { commands } from "./data/commands";
+	
+	// State
+	let historyCommands = [];
+	let inputValue = "";
+	let currentPath = "/home";
+	let commandToExecute = null;
+	
+	// Elements
+	let commandManager;
+	let commandLine;
+	
+	$: printCLI = currentPath + "> ";
 	
 	function checkInputKey(event) {
-		const { key } = event;
+		const {key} = event;
 		
 		if (key === 'Enter') {
-			const command = validCommands[0];
-			
-			commandHistory = [...commandHistory, {
-				text: printDirectory + inputValue,
-				commandName: inputValue,
-				output: command.print()
-			}];
-			
-			command.callback();
-			inputValue = "";
+			if (commandManager.commandToExecute) {
+				// Append to command history
+				const historyOutput = commandManager.commandToExecute.execute();
+				const historyInput = printCLI + commandLine.inputValue;
+				historyCommands = [...historyCommands, {input: historyInput, output: historyOutput}];
+				
+				// Clear input
+				inputValue = "";
+			}
 		}
 	}
-	
-	onMount(() => {
-		$commands = [
-			{
-				name: "look",
-				print: () => {
-					const lastPathName = currentPath[currentPath.length - 1];
-					let pathTraveled = [];
-					
-					const lookObject = currentPath.reduce((obj, cur) => {
-						let file = $files;
-						
-						for (let path of pathTraveled) {
-							file = file[path];
-						}
-						
-						file = file[cur];
-						pathTraveled.push(cur);
-						
-						return {
-							...obj,
-							...file
-						};
-					}, {})[lastPathName];
-					
-					return Object.keys(lookObject).join("<br>");
-				},
-				callback: () => {}
-			},
-			{
-				name: "go",
-				callback: () => {
-					const newLocation = args[0].trim();
-					currentPath = [...currentPath, newLocation];
-				},
-				print: () => {
-					return "";
-				}
-			}
-		]
-	});
-	
 </script>
 
 <style>
-	main {
-		color: orange;
-	}
+	/* main {
+		
+	} */
 </style>
 
+
+<DirectoryManager {root} bind:currentPath />
+<CommandManager {commands} bind:this={commandManager} bind:inputValue bind:commandToExecute />
+
 <main>
-	{#each commandHistory as command}
-		<CommandHistoryItem {...command} />
-	{/each}
+	<section class="history">
+		{#each historyCommands as {input, output}}
+			<OldCommandLine {input} {output} />
+		{/each}
+	</section>
 	
-	{printDirectory}
-	<InputCommand bind:value={inputValue} on:keydown={checkInputKey}/>
+	<section class="player-input">
+		<!-- TODO: Do I need to bind `path`? -->
+		<CommandLine bind:this={commandLine} bind:inputValue path={printCLI} on:keydown={checkInputKey} />
+	</section>
 </main>
