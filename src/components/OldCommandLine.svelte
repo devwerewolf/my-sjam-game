@@ -16,5 +16,4 @@
 <main>
   <input value={input} disabled>
   {@html output}
-  <!-- <svelte:component this={output} /> -->
 </main>

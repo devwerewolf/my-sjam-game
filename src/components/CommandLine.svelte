@@ -7,6 +7,8 @@
 <svelte:options accessors/>
 
 <main>
-  <span>{path}</span>
-  <input bind:value={inputValue} on:keydown>
+  <section>
+    <span>{path}</span>
+    <input bind:value={inputValue} on:keydown>
+  </section>
 </main>
