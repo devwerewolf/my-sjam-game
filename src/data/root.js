@@ -3,7 +3,7 @@ export const root = [
     {title: "home", directories: [
       {title: "upstairs", directories: [
         {title: "bedroom"},
-        {title: "restroom"}
+        {title: "downstairs", shortcut: "/home"}
       ]},
       {title: "kitchen"},
       {title: "outside"},

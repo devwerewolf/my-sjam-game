@@ -3,6 +3,7 @@
   export let inputValue;
   export let subDirectories;
   export let currentPath;
+  export let foundShortcut;
   export let commandName = "";
   export let commandArgument = "";
   export let commandToExecute = "";
@@ -29,7 +30,9 @@
       switch (commandName) {
         case "look": return lookCommand.outerHTML;
         case "go":
-          currentPath += `/${commandArgument}`
+          if (!foundShortcut) {
+            currentPath += `/${commandArgument}`
+          }
           return "";
       }
     }
