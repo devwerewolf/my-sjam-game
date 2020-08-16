@@ -21,36 +21,32 @@
 	let directoryManager;
 	
 	$: printCLI = currentPath + "> ";
-	$: {
-		console.log(subDirectories)
-	}
 	
 	function checkInputKey(event) {
 		const {key} = event;
 		
 		if (key === 'Enter') {
-			if (commandManager.commandToExecute) {
-				// Append to command history
-				const historyOutput = commandManager.execute();
-				const historyInput = printCLI + commandLine.inputValue;
-				historyCommands = [...historyCommands, {input: historyInput, output: historyOutput}];
-				
-				// Clear input
-				inputValue = "";
-			}
+			// Append to command history
+			const historyOutput = commandManager.execute();
+			const historyInput = printCLI + commandLine.inputValue;
+			historyCommands = [...historyCommands, {input: historyInput, output: historyOutput}];
+			
+			// Clear input
+			inputValue = "";
 		}
 	}
 </script>
 
+
 <style>
-	/* main {
-		
-	} */
+	main {
+		color: orange;
+	}
 </style>
 
 
 <DirectoryManager {root} bind:currentPath bind:this={directoryManager} bind:subDirectories />
-<CommandManager bind:this={commandManager} bind:inputValue bind:commandToExecute {subDirectories} />
+<CommandManager bind:this={commandManager} bind:inputValue bind:commandToExecute {subDirectories} bind:currentPath />
 
 <main>
 	<section class="history">
