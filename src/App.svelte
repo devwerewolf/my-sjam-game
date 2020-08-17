@@ -1,5 +1,8 @@
 <script>
-	import GameManager from "./components/GameManager.svelte";
+  import CommandLine from "./components/CommandLine.svelte";
+  import GameManager from "./components/GameManager.svelte";
+  import OldCommandLine from "./components/OldCommandLine.svelte";
+  import { onMount, tick } from "svelte";
 	
 	// Elements
 	let gameManager;
@@ -7,15 +10,42 @@
 	// State
 	let currentPath = "/home/upstairs";
 	let invalid = false;
-	let inputValue;
+  let inputValue = "";
+  let historyCommands = [];
+  let initTimestamp = Date.now();
+  let timeLapse = 0;
+  let inventory = [];
+  
+  // Reactive
+  $: printCLI = currentPath + "> ";
+  
+  // Lifecycle
+  onMount(() => {
+    setInterval(() => {
+      timeLapse = Math.floor((Date.now() - initTimestamp) / 1000);
+    }, 1000);
+  });
 	
-	function onInputKey(event) {
+	async function onInputKey(event) {
 		const {key} = event;
 		
 		if (key === "Enter") {
 			const [command, argument] = inputValue.split(" ");
 			
 			switch (command.toLowerCase()) {
+        case "check":
+          switch (argument) {
+            case "inventory":
+              gameManager.commandCheckInventory(inventory);
+              break;
+            case "time":
+              gameManager.commandCheckTime(timeLapse);
+              break;
+          }
+          break;
+        case "look":
+          gameManager.commandLook(currentPath);
+          break;
 				case "go":
 					switch (argument.toLowerCase()) {
 						case "back":
@@ -26,29 +56,43 @@
 							break;
 						default:
 							let tryPath = 
-								currentPath === "/" 
-								? `/${argument}` 
+								currentPath === "/"
+								? `/${argument}`
 								: currentPath + `/${argument}`;
 								
 							gameManager.commandGo(tryPath);
 							break;
 					}
-					break;
-			}
+          break;
+        case "take":
+          gameManager.commandTake(argument, currentPath);
+          break;
+      }
+      
+      await tick();
+      inputValue = "";
+      gameManager.reset();
 		}
 	}
 	
-	function onNewPath(event) {
-		// Append currentPath + output to history array
+	function onDone(event) {
+    const {newPath, invalid: invalid$, output = "", item} = event.detail;
+    
+    if (item) {
+      inventory = [...inventory, item];
+    }
+    
+    // Append currentPath + output to history array
+    historyCommands = [...historyCommands, {input: printCLI + inputValue, output, invalid: invalid$}]
 		
-		// Set new state
-		const {newPath, invalid: invalidDir} = event.detail;
-		invalid = invalidDir;
-		currentPath = newPath || "/";
-	}
-	
-	function testDownstairs() {
-		gameManager.commandGo("/home/upstairs/downstairs");
+    // Set new state
+    if (invalid$ !== undefined) {
+      invalid = invalid$;
+    }
+    
+    if (newPath) {
+      currentPath = newPath || "/";
+    }
 	}
 </script>
 
@@ -59,12 +103,16 @@
 </style>
 
 
-<GameManager bind:this={gameManager} on:newPath={onNewPath} />
+<GameManager bind:this={gameManager} on:done={onDone} />
 
 <main>
-	<h1>Hi</h1>
-	<input type="text" bind:value={inputValue} on:keydown={onInputKey}>
-	<h1 class:invalid>{currentPath}</h1>
-	
-	<button on:click={testDownstairs}>DOWNSTAIRS!</button>
+  <section class="history">
+    {#each historyCommands as {input, output, invalid}}
+      <OldCommandLine {input} {output} {invalid}/>
+    {/each}
+  </section>
+  
+  <section class="cli" class:invalid>
+    <CommandLine bind:inputValue {printCLI} on:keydown={onInputKey}/>
+  </section>
 </main>
