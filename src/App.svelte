@@ -8,13 +8,14 @@
 	let gameManager;
 	
 	// State
-	let currentPath = "/home/upstairs";
+	let currentPath = "/home";
 	let invalid = false;
   let inputValue = "";
   let historyCommands = [];
   let initTimestamp = Date.now();
   let timeLapse = 0;
   let inventory = [];
+  let caret = true;
   
   // Reactive
   $: printCLI = currentPath + "> ";
@@ -22,8 +23,14 @@
   // Lifecycle
   onMount(() => {
     setInterval(() => {
-      timeLapse = Math.floor((Date.now() - initTimestamp) / 1000);
+      if (!invalid) {
+        timeLapse = Math.floor((Date.now() - initTimestamp) / 1000);
+      }
     }, 1000);
+    
+    setInterval(() => {
+      caret = !caret
+    }, 500);
   });
 	
 	async function onInputKey(event) {
@@ -39,7 +46,7 @@
               gameManager.commandCheckInventory(inventory);
               break;
             case "time":
-              gameManager.commandCheckTime(timeLapse);
+              gameManager.commandCheckTime(timeLapse, invalid);
               break;
           }
           break;
@@ -99,7 +106,13 @@
 <style>
 	.invalid {
 		color: orange;
-	}
+  }
+  
+  main {
+    height: 100%;
+    width: 100%;
+    background-color: var(--terminal-background);
+  }
 </style>
 
 
@@ -113,6 +126,6 @@
   </section>
   
   <section class="cli" class:invalid>
-    <CommandLine bind:inputValue {printCLI} on:keydown={onInputKey}/>
+    <CommandLine bind:inputValue {caret} {printCLI} on:keydown={onInputKey}/>
   </section>
 </main>

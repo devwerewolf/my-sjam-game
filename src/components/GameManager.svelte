@@ -2,6 +2,7 @@
   export function moveDirectory(path) {
     let pathTitles = path.split("/");
     
+    // TODO: Fix this garbage
     let subDirectories = pathTitles.reduce((dirs, title) => {
       const {directories = [], shortcut, invalid, output, items = [] } = dirs.find(dir => dir.title === title) || { invalid: true };
       return [...directories, {shortcut, invalid, output, items}];
@@ -9,8 +10,6 @@
     
     let {shortcut, invalid, output, items} = subDirectories[subDirectories.length - 1];
     subDirectories.pop();
-    
-    console.log(items);
     
     return { subDirectories, shortcut, invalid, output, items };
   }
